@@ -12,13 +12,15 @@ def read_bff(filename):
     # --- ---------------------------- ---
     # --- Following will read the grid ---
     # --- ---------------------------- ---
-    #this define the grid pattern, from the GRID START to Grid STOP
-    #(.*?) is used to check if there are mutiple GRID STOP, usually
-    # will not, but check the tyrpo
+    """this define the grid pattern, from the GRID START to Grid STOP
+    (.*?) is used to check if there are mutiple GRID STOP, usually
+    will not, but check the typo
+    re.search is used to read/scan entire grid in strong fomrat o
+    the re.DOTALL is used to read new line because our grids has more 
+    than one line"""
+
     grid_pattern = r'GRID START(.*?)GRID STOP'
-    # re.search is used to read/scan entire grid in strong fomrat o
-    # the re.DOTALL is used to read new line because our grids has more 
-    # than one line
+
     grid_match = re.search(grid_pattern, content, re.DOTALL)
     # Chekc if grid was found, otheriser raise Error message.
     if not grid_match:
@@ -28,23 +30,17 @@ def read_bff(filename):
     # split grid_text lines from ooo to [o,o,o]
     grid_lines = grid_text.splitlines()
     # used to get all grid_lines together make a 2D things
-    grid_tokens = [line.split() for line in grid_lines]
+    grid_tokens = [line.split() for line in grid_lines if line.strip()]
     rows = len(grid_tokens)
-    columns = len(grid_tokens[0])
-
-
-
-
-
-
-
-
-
-
-
+    columns = max(len(tokens) for tokens in grid_tokens) if rows > 0 else 0
+    # --- ---------------------------- ---
+    # --- creat a 2D map now           ---
+    # --- ---------------------------- ---
     # Create numeric grid of size (2*rows+1) x (2*columns+1)
+    # +1 is to make sure all blocks's center in even numbers
     GRID = [[0 for _ in range(2 * columns + 1)] for _ in range(2 * rows + 1)]
     # Mapping: 'o' => 1, 'A' => 2, 'B' => 3, 'C' => 4, 'x' => 5
+    # I checked, all GRIDS will only o, B and x, so no need got A or C
     token_map = {'o': 1, 'A': 2, 'B': 3, 'C': 4, 'x': 5}
     for r in range(rows):
         for c in range(columns):
