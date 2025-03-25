@@ -1,0 +1,1 @@
+Run the python code and type the files you need to run without entension(.bff), such as if you want to run the code for solution of tiny_5.ff in the folder bff_files, you just need to type tiny_5 after running the code
