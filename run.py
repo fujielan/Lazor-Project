@@ -39,12 +39,15 @@ def read_bff(filename):
         raise ValueError("GRID section not found in file.")
     grid_text = grid_match.group(1).strip()
     grid_lines = grid_text.splitlines()
+
     # Each line should be tokens separated by spaces (e.g., "o B o")
     grid_tokens = [line.split() for line in grid_lines]
     rows = len(grid_tokens)
     columns = len(grid_tokens[0])
+
     # Create a numeric grid with dimensions 2*rows+1 x 2*columns+1
     GRID = [[0 for _ in range(2 * columns + 1)] for _ in range(2 * rows + 1)]
+
     # Map tokens to numbers:
     token_map = {'o': 1, 'A': 2, 'B': 3, 'C': 4, 'x': 5}
     for r in range(rows):
@@ -55,50 +58,35 @@ def read_bff(filename):
                 GRID[2 * r + 1][2 * c + 1] = token_map[token]
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                
-
-    # --- Parse inventory ---
+    # --- Parse inventory, lasers and target points ---
     inventory = {}
-    # Inventory lines are those immediately following GRID STOP until a line starting with "L"
-    lines = content.splitlines()
-    grid_stop_index = lines.index("GRID STOP")
-    i = grid_stop_index + 1
-    inv_pattern = r'^[ABC] \d+'
-    while i < len(lines) and re.match(inv_pattern, lines[i].strip()):
-        parts = lines[i].split()
-        inventory[parts[0]] = int(parts[1])
-        i += 1
-
-    # --- Parse laser info ---
     lasers = {"position": [], "direction": []}
-    if i < len(lines) and lines[i].startswith("L"):
-        parts = lines[i].split()
-        # Expected format: L x y dx dy
-        lasers["position"].append((int(parts[1]), int(parts[2])))
-        lasers["direction"].append((int(parts[3]), int(parts[4])))
-        i += 1
-
-    # --- Parse target points ---
     points_position = []
-    while i < len(lines) and lines[i].startswith("P"):
-        parts = lines[i].split()
-        points_position.append((int(parts[1]), int(parts[2])))
+    
+    # Start searching after "GRID STOP" line
+    lines = content.splitlines()
+    i = lines.index("GRID STOP")
+
+    # Matching all the three types of data with regular expressions
+    inv_pattern = r'^[ABC]'
+    laser_pattern = r'^L'
+    points_pattern = r'^P'
+
+    while i < len(lines):
+        line = lines[i].strip()
+        if not line:
+            i += 1
+            continue
+        elif re.match(inv_pattern, line):
+            parts = line.split()
+            inventory[parts[0]] = int(parts[1])
+        elif re.match(laser_pattern, line):
+            parts = line.split()
+            lasers["position"].append((int(parts[1]), int(parts[2])))
+            lasers["direction"].append((int(parts[3]), int(parts[4])))
+        elif re.match(points_pattern, line):
+            parts = line.split()
+            points_position.append((int(parts[1]), int(parts[2])))
         i += 1
 
     return GRID, inventory, lasers, points_position
