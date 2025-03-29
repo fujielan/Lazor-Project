@@ -12,6 +12,49 @@
 # Fujie is hot
 import re
 
+class Block:
+
+    def __init__(self, type: str, transparent: bool = False, reflective : bool = False, fixed : bool = False):
+        self.type = type
+        self.transparent = transparent
+        self.reflective = reflective
+        self.fixed = fixed
+
+    def is_fixed(self):
+        return self.fixed
+
+    def is_transparent(self):
+        return self.transparent
+
+    def is_reflective(self):
+        return self.reflective
+    
+    def __repr__(self):
+        return f"<{self.type} - {'FIXED' if self.fixed else 'UNFIXED'}, " \
+               f"{'TRANSPARENT' if self.transparent else 'OPAQUE'}, " \
+               f"{'REFLECTIVE' if self.reflective else 'NON-REFLECTIVE'}>"
+
+    def __str__(self):
+        return repr(self)
+
+def fix_block(block: Block):
+    block.fixed = True
+
+def unfix_block(block: Block):
+    block.fixed = False    
+
+BLOCK_TYPES = {
+    "BLANK": Block("BLANK", transparent=True),
+    "OPAQUE": Block("OPAQUE"),
+    "REFLECT": Block("REFLECT", reflective=True),
+    "REFRACT": Block("REFRACT", transparent=True, reflective=True),
+    "FIXED_BLANK": Block("FIXED_BLANK", transparent=True, fixed=True),
+    "FIXED_OPAQUE": Block("FIXED_OPAQUE", fixed=True),
+    "FIXED_REFLECT": Block("FIXED_REFLECT", reflective=True, fixed=True),
+    "FIXED_REFRACT": Block("FIXED_REFRACT", transparent=True, reflective=True, fixed=True),
+}
+
+
 def read_bff(filename):
     """
     Reads a .bff file and returns four elements:
