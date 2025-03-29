@@ -74,10 +74,7 @@ def read_bff(filename):
 
     while i < len(lines):
         line = lines[i].strip()
-        if not line:
-            i += 1
-            continue
-        elif re.match(inv_pattern, line):
+        if re.match(inv_pattern, line):
             parts = line.split()
             inventory[parts[0]] = int(parts[1])
         elif re.match(laser_pattern, line):
