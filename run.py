@@ -11,6 +11,8 @@
 
 # Fujie is hot
 import re
+import itertools
+from collections import deque
 
 class Block:
 
@@ -36,12 +38,6 @@ class Block:
 
     def __str__(self):
         return repr(self)
-
-def fix_block(block: Block):
-    block.fixed = True
-
-def unfix_block(block: Block):
-    block.fixed = False    
 
 BLOCK_TYPES = {
     "BLANK": Block("BLANK", transparent=True),
@@ -137,7 +133,26 @@ def pos_chk(x, y, x_dim, y_dim):
     """
     return 0 <= x <= x_dim and 0 <= y <= y_dim
 
-def laser_path(laser_position, laser_direction, x_dim, y_dim, blocks):
+def get_possible_block_pos(GRID, inventory):
+
+    possible_pos = [(x, y) for x , row in enumerate(GRID)
+                    for y, val in enumerate(row) if val == 1]
+    
+    total_num = sum(inventory.values())
+
+    placement_schemes = []
+
+    for inventory, count in inventory.items():
+        block_combinations = list(itertools.combinations(positions, count))
+    
+        for combination in block_combinations:
+            permutations = list(itertools.permutations(combination))
+        
+            placement_schemes.extend(permutations)
+
+
+
+def laser_path(laser_position, laser_direction, x_dim, y_dim, block_list):
     """
     Recursively computes the path of a laser beam.
     
@@ -156,74 +171,74 @@ def laser_path(laser_position, laser_direction, x_dim, y_dim, blocks):
       A list of coordinates that the beam passes through.
     """
     x, y = laser_position
-    d_x, d_y = laser_direction
+    dx, dy = laser_direction
     path = [(x, y)]
     path_refract = []
 
     # Determine the next block's position and the flag based on coordinate parity.
     if x % 2 == 0:
         # When x is even, we interact horizontally.
-        if d_x == 1:
+        if dx == 1:
             block = (x + 1, y)
             flag = 'R'
-        elif d_x == -1:
+        elif dx == -1:
             block = (x - 1, y)
             flag = 'L'
         else:
             return path
         # Early termination if both adjacent positions are reflect blocks.
-        if ((x - 1, y) in blocks.get('A', [])) and ((x + 1, y) in blocks.get('A', [])):
+        if ((x - 1, y) in block_list.get('A', [])) and ((x + 1, y) in block_list.get('A', [])):
             return path
     else:
         # When x is odd, we interact vertically.
-        if d_y == 1:
+        if dy == 1:
             block = (x, y + 1)
             flag = 'D'
-        elif d_y == -1:
+        elif dy == -1:
             block = (x, y - 1)
             flag = 'U'
         else:
             return path
-        if ((x, y - 1) in blocks.get('A', [])) and ((x, y + 1) in blocks.get('A', [])):
+        if ((x, y - 1) in block_list.get('A', [])) and ((x, y + 1) in block_list.get('A', [])):
             return path
 
     # Simulate the beam until it leaves the board.
     while pos_chk(block[0], block[1], x_dim, y_dim):
         # If the beam hits an opaque block, stop.
-        if block in blocks.get('B', []):
+        if block in block_list.get('B', []):
             break
         # If it hits a reflect block, flip the appropriate component.
-        elif block in blocks.get('A', []):
+        elif block in block_list.get('A', []):
             if flag in ['L', 'R']:
-                d_x = -d_x
+                dx = -dx
             elif flag in ['U', 'D']:
-                d_y = -d_y
+                dy = -dy
         # If it hits a refract block, recursively get the transmitted beam's path.
-        elif block in blocks.get('C', []):
-            path_refract = laser_path((x + d_x, y + d_y), (d_x, d_y), x_dim, y_dim, blocks)
+        elif block in block_list.get('C', []):
+            path_refract = laser_path((x + dx, y + dy), (dx, dy), x_dim, y_dim, block_list)
             if flag in ['L', 'R']:
-                d_x = -d_x
+                dx = -dx
             elif flag in ['U', 'D']:
-                d_y = -d_y
+                dy = -dy
 
         # Move the beam one step.
-        x += d_x
-        y += d_y
+        x += dx
+        y += dy
         path.append((x, y))
 
         # Update the block position and flag for the next interaction.
         if x % 2 == 0:
-            if d_x == 1:
+            if dx == 1:
                 block = (x + 1, y)
                 flag = 'R'
-            elif d_x == -1:
+            elif dx == -1:
                 block = (x - 1, y)
                 flag = 'L'
         else:
-            if d_y == 1:
+            if dy == 1:
                 block = (x, y + 1)
                 flag = 'D'
-            elif d_y == -1:
+            elif dy == -1:
                 block = (x, y - 1)
                 flag = 'U'
 
