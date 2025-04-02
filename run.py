@@ -133,22 +133,31 @@ def pos_chk(x, y, x_dim, y_dim):
     """
     return 0 <= x <= x_dim and 0 <= y <= y_dim
 
-def get_possible_block_pos(GRID, inventory):
+def generate_block_placements(GRID, inventory):
 
     possible_pos = [(x, y) for x , row in enumerate(GRID)
                     for y, val in enumerate(row) if val == 1]
     
-    total_num = sum(inventory.values())
+    block_types = list(inventory.keys())
+    total_count = sum(inventory.values())
 
-    placement_schemes = []
+    all_position_combinations = itertools.combinations(possible_pos, total_count)
+    all_schemes = []
 
-    for inventory, count in inventory.items():
-        block_combinations = list(itertools.combinations(positions, count))
-    
-        for combination in block_combinations:
-            permutations = list(itertools.permutations(combination))
+    for position_comb in all_position_combinations:
+        type_permutations = []
+        index = 0
         
-            placement_schemes.extend(permutations)
+        for block_type in block_types:
+            count = inventory[block_type] 
+            type_permutations.append(itertools.permutations(position_comb[index:index+count]))
+            index += count
+        
+        for perm in itertools.product(*type_permutations):
+            scheme = {block_types[i]: list(perm[i]) for i in range(len(block_types))}
+            all_schemes.append(scheme)
+    
+    return all_schemes
 
 
 
