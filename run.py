@@ -284,29 +284,33 @@ def output_solution(blocks):
         print(f"{b_type}: {positions}")
 
 def main():
+
     filename = input("Enter the filename to solve (without extension): ")
     GRID, inventory, lasers, points_position = read_bff(filename)
-    
-    # For this refined version, we use a fixed block configuration as an example.
-    # (A full solver would iterate through placements over allowed positions.)
-    blocks = {}
-    # Example configuration (based on the correct code hint):
-    # blocks['A'] = [(1, 5), (7, 3)]
-    # blocks['B'] = []
-    # blocks['C'] = [(5, 1)]
-    
-    # Compute the laser paths for each laser.
-    paths = []
+
     x_dim = len(GRID[0]) - 1
     y_dim = len(GRID) - 1
-    for pos, dir in zip(lasers["position"], lasers["direction"]):
-        path = laser_path(pos, dir, x_dim, y_dim, blocks)
-        paths.append(path)
+    count = 0
+    placements = generate_block_placements(GRID, inventory)
+
+    while count < len(placements):
+
+        scheme = placements[count]
+        blocks = {'A': [], 'B': [], 'C': []}
+        paths = []
+
+        for block_type, coords in scheme.items():
+            blocks[block_type] = coords
+
+        for pos, dir in zip(lasers["position"], lasers["direction"]):
+            path = laser_path(pos, dir, x_dim, y_dim, blocks)
+            paths.append(path)
     
-    if check_answer(points_position, paths):
-        output_solution(blocks)
-    else:
-        print("No solution found with the current block configuration.")
+        if check_answer(points_position, paths):
+            output_solution(blocks)
+            break
+
+        count += 1
 
 if __name__ == "__main__":
     main()
