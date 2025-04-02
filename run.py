@@ -12,7 +12,6 @@
 # Fujie is hot
 import re
 import itertools
-from collections import deque
 
 class Block:
 
@@ -49,7 +48,6 @@ BLOCK_TYPES = {
     "FIXED_REFLECT": Block("FIXED_REFLECT", reflective=True, fixed=True),
     "FIXED_REFRACT": Block("FIXED_REFRACT", transparent=True, reflective=True, fixed=True),
 }
-
 
 def read_bff(filename):
     """
@@ -107,7 +105,7 @@ def read_bff(filename):
     i = lines.index("GRID STOP")
 
     # Matching all the three types of data with regular expressions
-    inv_pattern = r'^[ABC]'
+    inv_pattern = r'^[ABC] \d'
     laser_pattern = r'^L'
     points_pattern = r'^P'
 
@@ -135,7 +133,7 @@ def pos_chk(x, y, x_dim, y_dim):
 
 def generate_block_placements(GRID, inventory):
 
-    possible_pos = [(x, y) for x , row in enumerate(GRID)
+    possible_pos = [(y, x) for x , row in enumerate(GRID)
                     for y, val in enumerate(row) if val == 1]
     
     block_types = list(inventory.keys())
@@ -159,8 +157,6 @@ def generate_block_placements(GRID, inventory):
     
     return all_schemes
 
-
-
 def laser_path(laser_position, laser_direction, x_dim, y_dim, block_list):
     """
     Recursively computes the path of a laser beam.
@@ -170,8 +166,8 @@ def laser_path(laser_position, laser_direction, x_dim, y_dim, block_list):
     to indicate which side of a cell the beam is approaching.
     
     Parameters:
-      laser_position: tuple (x, y) – starting coordinate of the beam.
-      laser_direction: tuple (d_x, d_y) – initial direction.
+      laser_position: tuple (x, y) - starting coordinate of the beam.
+      laser_direction: tuple (d_x, d_y) - initial direction.
       x_dim, y_dim: grid boundaries.
       blocks: dictionary of block placements:
               blocks['A'], blocks['B'], blocks['C'] are lists of coordinates.
@@ -311,6 +307,9 @@ def main():
             break
 
         count += 1
+    
+    if count == len(placements):
+        print("No solutions found")
 
 if __name__ == "__main__":
     main()
